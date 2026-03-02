@@ -47,6 +47,13 @@ async function downloadIflowZip(iflowName, token) {
         if (err.response?.data) {
             const rawBody = Buffer.from(err.response.data).toString('utf8');
             const status = err.response.status;
+
+            // Extract <message>...</message> for cleaner logs
+            const match = rawBody.match(/<message[^>]*>(.*?)<\/message>/i);
+            if (match && match[1]) {
+                throw new Error(`${match[1]} (HTTP ${status})`);
+            }
+
             throw new Error(`HTTP ${status} — ${rawBody.slice(0, 300)}`);
         }
         throw err;
