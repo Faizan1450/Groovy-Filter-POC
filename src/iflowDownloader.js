@@ -60,4 +60,40 @@ async function downloadIflowZip(iflowName, token) {
     }
 }
 
-module.exports = { downloadIflowZip };
+/**
+ * Downloads an iflow zip from a pre-built full URL.
+ * Used by the bulk orchestrator where the URL comes from the package/iflow discovery API.
+ *
+ * @param {string} url   - Full download URL (entry.id + '/$value')
+ * @param {string} token - Bearer token
+ * @returns {Promise<Buffer>}
+ */
+async function downloadFromUrl(url, token) {
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/zip, application/octet-stream',
+            },
+            responseType: 'arraybuffer',
+            timeout: 30_000,
+        });
+
+        const buffer = Buffer.from(response.data);
+        return buffer;
+
+    } catch (err) {
+        if (err.response?.data) {
+            const rawBody = Buffer.from(err.response.data).toString('utf8');
+            const status = err.response.status;
+            const match = rawBody.match(/<message[^>]*>(.*?)<\/message>/i);
+            if (match && match[1]) {
+                throw new Error(`${match[1]} (HTTP ${status})`);
+            }
+            throw new Error(`HTTP ${status} — ${rawBody.slice(0, 300)}`);
+        }
+        throw err;
+    }
+}
+
+module.exports = { downloadIflowZip, downloadFromUrl };

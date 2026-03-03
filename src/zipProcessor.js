@@ -39,7 +39,6 @@ function loadAndExtractIflw(buffer, iflowName) {
         throw new Error(`No .iflw file found inside the zip for iflow: ${iflowName}`);
     }
 
-    console.log(`  📄  Found .iflw: ${iflwEntry.entryName.split('/').pop()}`);
     const iflwContent = iflwEntry.getData().toString('utf-8');
 
     // Check whether a script folder exists in this zip
